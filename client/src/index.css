@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.tasks-counter {
+  transition: all 0.3s ease;
+}
+.tasks-counter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.progress-circle {
+  transition: stroke-dasharray 0.6s ease;
+}
+
+/* Hide scrollbar for all browsers */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+html, body, #root {
+  height: 100%;
+}
