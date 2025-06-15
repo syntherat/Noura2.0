@@ -40,7 +40,7 @@ export default function PlanSummary({ plan }) {
       <TasksCounter
         completed={completedItems}
         total={totalItems}
-        totalHours={Number(plan?.total_hours || 0).toFixed(0)}
+        totalHours={totalHours}
       />
 
       {/* Styled quick stats UI below */}

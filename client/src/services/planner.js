@@ -21,11 +21,13 @@ const transformNumbers = (data) => {
 const plannerService = {
   async getPlans() {
     const res = await api.get('/api/planner');
+    console.log(res);
     return res.data;
   },
   
   async getPlan(id) {
     const res = await api.get(`/api/planner/${id}`);
+    console.log(res);
     return transformNumbers(res.data);
   },
   

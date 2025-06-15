@@ -92,6 +92,7 @@ const PlannerController = {
       const { id } = req.params;
       console.log("Fetching full plan for ID:", id);
       const plan = await PlannerController.getFullPlan(id);
+      console.log(plan)
       
       if (!plan) {
         return res.status(404).json({ message: 'Plan not found' });
@@ -180,19 +181,25 @@ const PlannerController = {
   }
 },
 
-  async getFullPlan(planId) {
-    const plan = await StudyPlan.findById(planId);
-    if (!plan) return null;
-    
-    const topics = await StudyTopic.findByPlanId(planId);
-    const schedule = await StudySchedule.findByPlanId(planId);
-    
-    return {
-      ...plan,
-      topics,
-      schedule,
-    };
-  },
+async getFullPlan(planId) {
+  const plan = await StudyPlan.findById(planId);
+  console.log(plan);
+  if (!plan) return null;
+  
+  const topics = await StudyTopic.findByPlanId(planId);
+  console.log(topics)
+  const schedule = await StudySchedule.findByPlanId(planId);
+  
+  // Calculate total estimated hours
+  const totalHours = topics.reduce((sum, topic) => sum + parseFloat(topic.estimated_hours), 0);
+  
+  return {
+    ...plan,
+    topics,
+    schedule,
+    totalHours // Add this to the returned plan object
+  };
+}
 };
 
 export default PlannerController;

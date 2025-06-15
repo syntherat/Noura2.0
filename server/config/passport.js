@@ -50,7 +50,10 @@ passport.use(
 // Google Strategy
 // config/passport.js
 passport.use(new GoogleStrategy({
-  // ... existing config
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.SERVER_URL}/api/auth/google/callback`,
+    passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     // Check if user exists with this Google ID

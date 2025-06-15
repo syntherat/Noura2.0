@@ -50,7 +50,7 @@ export default function TasksCounter({ completed, total, totalHours }) {
       </div>
 
       {/* 3. Stats: Completed / Remaining / Total Time */}
-      <div className="grid grid-cols-3 gap-4 text-sm">
+      <div className="grid grid-cols-2 gap-4 text-sm">
         <div className="bg-green-50 p-3 rounded-md">
           <p className="text-2xl font-bold text-green-600">{completed}</p>
           <p className="text-gray-600">Completed</p>
@@ -59,10 +59,10 @@ export default function TasksCounter({ completed, total, totalHours }) {
           <p className="text-2xl font-bold text-yellow-600">{remaining}</p>
           <p className="text-gray-600">Remaining</p>
         </div>
-        <div className="bg-blue-50 p-3 rounded-md">
+        {/* <div className="bg-blue-50 p-3 rounded-md">
           <p className="text-2xl font-bold text-blue-600">{totalHours}h</p>
           <p className="text-gray-600">Total Time</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
