@@ -66,7 +66,7 @@ Noura is a full-stack web application built using **React (frontend)** and **Nod
 |--------------------|-----------------|------------------------------------------------------------|
 | Sounak Pal    | `syntherat`  | Backend development, Frontend development, deployment     |
 | Anamika Rai  | `Anamika-1629`     | File parser integration (PDF, DOCX), API endpoints, Backend development   |
-| Bhakti Chopra   | `bhaktichopra2`     | Frontend UI design, calendar view, progress tracking UI         |
+| Bhakti Chopra   | `bhaktichopra2`     | Frontend UI design, Progress tracking UI, Frontend development         |
 | Priyanshu Singh  | `PriyanshuSingh10114`     | Smart scheduling algorithm, time allocation system, NLP logic integration         |
 
 ---
