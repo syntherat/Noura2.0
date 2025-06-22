@@ -1,6 +1,6 @@
 # 🧠 Noura
 
-Nourar is a full-stack web application built using **React (frontend)** and **Node.js + Express (backend)** that intelligently organizes a student's study schedule. It turns syllabus content (PDF, DOCX, or plain text) into a **personalized daily study plan** based on the student's available time and deadlines.
+Noura is a full-stack web application built using **React (frontend)** and **Node.js + Express (backend)** that intelligently organizes a student's study schedule. It turns syllabus content (PDF, DOCX, or plain text) into a **personalized daily study plan** based on the student's available time and deadlines.
 
 ---
 
@@ -64,10 +64,10 @@ Nourar is a full-stack web application built using **React (frontend)** and **No
 
 | Team Member        | GitHub Username | Role & Contributions                                      |
 |--------------------|-----------------|------------------------------------------------------------|
-| Sounak Pal    | `syntherat`  | Backend development, NLP logic integration, deployment     |
-| Anamika Rai  | `Anamika-1629`     | Frontend UI design, calendar view, progress tracking UI   |
-| Bhakti Chopra   | `bhaktichopra2`     | File parser integration (PDF, DOCX), API endpoints         |
-| Priyanshu Singh  | `PriyanshuSingh10114`     | Smart scheduling algorithm, time allocation system         |
+| Sounak Pal    | `syntherat`  | Backend development, Frontend development, deployment     |
+| Anamika Rai  | `Anamika-1629`     | File parser integration (PDF, DOCX), API endpoints, Backend development   |
+| Bhakti Chopra   | `bhaktichopra2`     | Frontend UI design, calendar view, progress tracking UI         |
+| Priyanshu Singh  | `PriyanshuSingh10114`     | Smart scheduling algorithm, time allocation system, NLP logic integration         |
 
 ---
 
@@ -100,6 +100,7 @@ npm run dev
 ```bash
 cd client
 npm install
+# Create .env file and add necessary config (e.g., PORT, OPENAI_API_KEY)
 npm start
 ```
 
@@ -200,5 +201,3 @@ The `pdf-parse` package sometimes tries to run a test using a local PDF file tha
 ---
 
 ✨ _Smart planning for smarter studying – turn chaos into clarity!_
-
-
