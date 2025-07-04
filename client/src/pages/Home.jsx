@@ -21,10 +21,10 @@ export default function Home() {
           <div className="mb-8">
             {user ? (
               <Link
-                to="/app"
+                to="/app/plans/create"
                 className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition"
               >
-                Go to Dashboard
+                Create New Plan
               </Link>
             ) : (
               <Link

@@ -26,7 +26,7 @@ function App() {
               <MainLayout />
             </RequireAuth>
           }>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Home />} />
             <Route path="plans" element={<ViewPlans />} />
             <Route path="plans/create" element={<CreatePlan />} />
             <Route path="plans/:id" element={<PlanDetail />} />
