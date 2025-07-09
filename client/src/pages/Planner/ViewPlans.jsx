@@ -45,7 +45,7 @@ export default function ViewPlans() {
             <h2 className="text-2xl font-bold">My Study Plans</h2>
             <Link
               to="/app/plans/create"
-              className="btn-primary"
+              className="btn-primary font-poppins"
             >
               Create New Plan
             </Link>
