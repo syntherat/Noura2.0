@@ -16,7 +16,11 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* Home route now uses MainLayout */}
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+          </Route>
+          
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
@@ -26,7 +30,7 @@ function App() {
               <MainLayout />
             </RequireAuth>
           }>
-            <Route index element={<Home />} />
+            <Route index element={<Dashboard />} />
             <Route path="plans" element={<ViewPlans />} />
             <Route path="plans/create" element={<CreatePlan />} />
             <Route path="plans/:id" element={<PlanDetail />} />
