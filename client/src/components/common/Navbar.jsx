@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import logo from '../../assets/NouraLogo.png';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -20,8 +21,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/app" className="text-xl font-bold text-gray-800">
-              Noura
+            <Link to="/" className="text-xl font-bold text-gray-800">
+              <div className='flex justify-center items-center gap-3'>
+                <img src={logo} alt="Noura Logo" />
+                <p>Noura</p>
+              </div>
             </Link>
           </div>
           

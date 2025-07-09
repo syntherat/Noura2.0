@@ -1,5 +1,6 @@
 import Navbar from '../common/Navbar.jsx';
 import { Outlet } from 'react-router-dom';
+import Footer from '../common/Footer.jsx';
 
 export default function MainLayout() {
   return (
@@ -8,6 +9,7 @@ export default function MainLayout() {
       <main className="max-w-screen-2xl mx-auto py-6 px-6">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 }

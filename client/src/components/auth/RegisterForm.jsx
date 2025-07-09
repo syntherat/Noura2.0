@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import GoogleAuth from './GoogleAuth.jsx';
+import { Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; // install with `npm i lucide-react`
 
 export default function RegisterForm() {
   const { register } = useAuth();
@@ -14,18 +16,24 @@ export default function RegisterForm() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [agree, setAgree] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
     setLoading(true);
-    
-    // Validate form
+
     const newErrors = {};
     if (!formData.firstName) newErrors.firstName = 'First name is required';
     if (!formData.email) newErrors.email = 'Email is required';
     if (!formData.password) newErrors.password = 'Password is required';
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+    if (!agree) {
+      newErrors.agree = 'You must agree to the terms';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -40,157 +48,162 @@ export default function RegisterForm() {
       email: formData.email,
       password: formData.password
     });
-    
+
     setLoading(false);
-    
     if (!result.success) {
       toast.error(result.message);
     }
-  };
+
+  } catch (error) {
+    console.error("Register error:", error);
+    setLoading(false);
+    toast.error("Something went wrong");
+  }
+};
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    // Clear error when user types
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errors[e.target.name]) {
-      setErrors({
-        ...errors,
-        [e.target.name]: null
-      });
+      setErrors({ ...errors, [e.target.name]: null });
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
-      
+    <>
+      <h2 className="text-2xl font-bold text-gray-900 mb-1">Create Account</h2>
+      <p className="text-gray-500 mb-6">Join us to start your learning journey</p>
+
       <form onSubmit={handleSubmit} className="space-y-4">
+
+        {/* First + Last Name */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-              First Name *
-            </label>
+            <label className="text-sm font-semibold text-gray-700">First Name</label>
             <input
-              id="firstName"
               name="firstName"
               type="text"
+              placeholder="Enter your first name"
               value={formData.firstName}
               onChange={handleChange}
-              className={`input-field ${errors.firstName ? 'border-red-500' : ''}`}
-              required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
-            {errors.firstName && (
-              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
-            )}
           </div>
-          
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name
-            </label>
+            <label className="text-sm font-semibold text-gray-700">Last Name</label>
             <input
-              id="lastName"
               name="lastName"
               type="text"
+              placeholder="Enter your last name"
               value={formData.lastName}
               onChange={handleChange}
-              className="input-field"
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
         </div>
-        
+
+        {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
+          <label className="text-sm font-semibold text-gray-700">Email Address</label>
           <input
-            id="email"
             name="email"
             type="email"
+            placeholder="Enter your email"
             value={formData.email}
             onChange={handleChange}
-            className={`input-field ${errors.email ? 'border-red-500' : ''}`}
-            required
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-          )}
         </div>
-        
+
+        {/* Password */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password *
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={`input-field ${errors.password ? 'border-red-500' : ''}`}
-            required
-            minLength="6"
-          />
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-          )}
+          <label className="text-sm font-semibold text-gray-700">Password</label>
+          <div className="relative mt-1">
+            <input
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
-        
+
+        {/* Confirm Password */}
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm Password *
-          </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className={`input-field ${errors.confirmPassword ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.confirmPassword && (
-            <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
-          )}
+          <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
+          <div className="relative mt-1">
+            <input
+              name="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
-        
+
+        {/* Terms */}
+        <div className="flex items-start space-x-2">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={agree}
+            onChange={(e) => {
+              setAgree(e.target.checked);
+              if (errors.agree) setErrors({ ...errors, agree: null });
+            }}
+          />
+          <p className="text-sm text-gray-600">
+            I agree to the <a href="#" className="text-indigo-600 underline">Terms of Service</a> and <a href="#" className="text-indigo-600 underline">Privacy Policy</a>
+          </p>
+        </div>
+        {errors.agree && <p className="text-xs text-red-500">{errors.agree}</p>}
+
+        {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
-          className="btn-primary w-full py-2 px-4 flex justify-center items-center"
+          disabled={loading || !agree}
+          className="bg-indigo-600 text-white font-medium py-2 rounded-md w-full hover:bg-indigo-700 transition"
         >
-          {loading ? (
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : 'Sign Up'}
+          {loading ? 'Creating...' : 'Create Account'}
         </button>
       </form>
-      
-      <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
-        
-        <div className="mt-6">
-          <GoogleAuth />
-        </div>
+
+      {/* Divider */}
+      <div className="flex items-center my-4">
+        <div className="flex-grow border-t"></div>
+        <span className="mx-2 text-gray-400 text-sm">Or continue with</span>
+        <div className="flex-grow border-t"></div>
       </div>
-      
-      <div className="mt-4 text-center text-sm">
+
+      {/* Google */}
+      <GoogleAuth />
+
+      {/* Footer */}
+      <p className="text-sm text-center mt-4">
         Already have an account?{' '}
-        <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
-          Log in
-        </a>
-      </div>
-    </div>
+        <Link to="/login" className="text-indigo-600 hover:underline font-medium">Sign in</Link>
+      </p>
+
+      <p className="text-xs text-center text-gray-400 mt-2">
+        By creating an account, you agree to our <a href="#" className="underline">Terms of Service</a> and <a href="#" className="underline">Privacy Policy</a>
+      </p>
+    </>
   );
 }

@@ -6,7 +6,7 @@ export default function Home() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-indigo-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-20 flex flex-col lg:flex-row items-center justify-between gap-16">
         {/* Left Column */}
         <div className="max-w-xl">
