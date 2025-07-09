@@ -81,7 +81,17 @@ const PlannerController = {
     try {
       const { user } = req;
       const plans = await StudyPlan.findByUserId(user.id);
-      res.json(plans);
+
+      const plansWithStatus = await Promise.all(plans.map(async (plan) => {
+        const scheduleItems = await StudySchedule.findByPlanId(plan.id);
+        const isCompleted = scheduleItems.length > 0 && scheduleItems.every(item => item.is_completed);
+        return {
+          ...plan,
+          completed: isCompleted
+        };
+      }));
+
+      res.json(plansWithStatus);
     } catch (err) {
       res.status(500).json({ message: 'Failed to get study plans', error: err.message });
     }

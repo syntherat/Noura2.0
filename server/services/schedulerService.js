@@ -1,81 +1,108 @@
-import { addDays, isWeekend, formatISO, parseISO, eachDayOfInterval } from 'date-fns';
+import { addDays, isWeekend, formatISO, parseISO, eachDayOfInterval, getDay } from 'date-fns';
 
 const SchedulerService = {
   generateStudySchedule({ topics, deadline, dailyHours, studyDays }) {
-    // 1. Convert all inputs to proper numbers
+    // 1. Convert all inputs to proper numbers and validate
     const parseNumber = (value) => {
       if (typeof value === 'string') {
-        // Remove any non-numeric characters except decimal point
         const cleaned = value.replace(/[^0-9.]/g, '');
         return parseFloat(cleaned) || 0;
       }
       return Number(value) || 0;
     };
-    // Convert studyDays string to array of numbers
-    const availableDays = studyDays.split(',').map(Number).filter(d => !isNaN(d));
-    
+
+    // 2. Convert studyDays to array of numbers and validate
+    const availableDays = Array.isArray(studyDays) 
+      ? studyDays.map(Number).filter(d => !isNaN(d) && d >= 0 && d <= 6)
+      : typeof studyDays === 'string' 
+        ? studyDays.split(',').map(Number).filter(d => !isNaN(d) && d >= 0 && d <= 6)
+        : [];
+
+    if (availableDays.length === 0) {
+      throw new Error('No valid study days provided');
+    }
+
     // 3. Calculate total hours with proper number conversion
     const totalHours = topics.reduce((sum, topic) => {
-      const hours = parseNumber(topic.estimated_hours);
-      console.log(`[DEBUG] Adding hours: ${hours} (from ${topic.estimated_hours})`);
-      return sum + hours;
+      return sum + parseNumber(topic.estimated_hours);
     }, 0);
 
-    console.log(`[DEBUG] Total hours: ${totalHours}`);
-    
-    // FIX: Ensure dailyHours is a number
-    dailyHours = parseFloat(dailyHours);
-    
-    // Calculate available days between now and deadline
+    if (totalHours <= 0) {
+      throw new Error('Total study hours must be greater than 0');
+    }
+
+    // 4. Ensure dailyHours is a positive number
+    dailyHours = Math.max(parseNumber(dailyHours), 0.5); // Minimum 0.5 hours per day
+
+    // 5. Calculate available study dates
     const startDate = new Date();
     const endDate = new Date(deadline);
+    
+    if (startDate >= endDate) {
+      throw new Error('Deadline must be in the future');
+    }
+
     const allDays = eachDayOfInterval({ start: startDate, end: endDate });
     
-    // Filter only available study days
+    // Filter only available study days (using date-fns getDay for consistency)
     const studyDates = allDays.filter(date => {
-      const dayOfWeek = date.getDay(); // 0 (Sun) to 6 (Sat)
+      const dayOfWeek = getDay(date); // 0 (Sun) to 6 (Sat)
       return availableDays.includes(dayOfWeek);
     });
-    
-    // Calculate total available study hours
+
+    if (studyDates.length === 0) {
+      throw new Error('No study days available within the selected period');
+    }
+
+    // 6. Calculate total available study hours
     const totalAvailableHours = studyDates.length * dailyHours;
     
-    // Adjust estimated hours if needed
-    const scaleFactor = totalAvailableHours / totalHours;
+    // 7. Adjust estimated hours if needed (scale down only)
+    const scaleFactor = Math.min(1, totalAvailableHours / totalHours);
     const adjustedTopics = topics.map(topic => ({
       ...topic,
-      adjusted_hours: parseFloat(topic.estimated_hours) * scaleFactor,
+      adjusted_hours: parseNumber(topic.estimated_hours) * scaleFactor,
     }));
-    
-    // Distribute topics across study dates
+
+    // 8. Distribute topics across study dates
     const schedule = [];
     let currentDateIndex = 0;
-    let remainingHours = studyDates[currentDateIndex] ? dailyHours : 0;
-    
-    for (const topic of adjustedTopics) {
-      let topicHoursRemaining = topic.adjusted_hours;
-      
-      while (topicHoursRemaining > 0 && currentDateIndex < studyDates.length) {
-        const studyDate = studyDates[currentDateIndex];
-        const hoursForThisDay = Math.min(remainingHours, topicHoursRemaining);
-        
+    let remainingHours = dailyHours;
+    let currentTopicIndex = 0;
+    let topicHoursRemaining = adjustedTopics[currentTopicIndex]?.adjusted_hours || 0;
+
+    while (currentDateIndex < studyDates.length && currentTopicIndex < adjustedTopics.length) {
+      const studyDate = studyDates[currentDateIndex];
+      const hoursForThisDay = Math.min(remainingHours, topicHoursRemaining);
+
+      if (hoursForThisDay > 0) {
         schedule.push({
-          topic_id: topic.id,
+          topic_id: adjustedTopics[currentTopicIndex].id,
+          topic_name: adjustedTopics[currentTopicIndex].name,
           study_date: formatISO(studyDate, { representation: 'date' }),
           duration_hours: hoursForThisDay,
+          complexity: adjustedTopics[currentTopicIndex].complexity || 'medium'
         });
-        
+
         topicHoursRemaining -= hoursForThisDay;
         remainingHours -= hoursForThisDay;
-        
-        if (remainingHours <= 0) {
-          currentDateIndex++;
-          remainingHours = currentDateIndex < studyDates.length ? dailyHours : 0;
+      }
+
+      // Move to next topic if current one is complete
+      if (topicHoursRemaining <= 0) {
+        currentTopicIndex++;
+        if (currentTopicIndex < adjustedTopics.length) {
+          topicHoursRemaining = adjustedTopics[currentTopicIndex].adjusted_hours;
         }
       }
+
+      // Move to next day if current day is full
+      if (remainingHours <= 0) {
+        currentDateIndex++;
+        remainingHours = dailyHours;
+      }
     }
-  
-    
+
     return schedule;
   },
 };

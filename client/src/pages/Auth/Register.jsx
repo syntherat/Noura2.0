@@ -2,29 +2,36 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import RegisterForm from '../../components/auth/RegisterForm.jsx';
+import logo from '../../assets/noura-logo.png';
 
 export default function Register() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/app');
-    }
+    if (user) navigate('/');
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create a new account
-        </h2>
-      </div>
-      
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <RegisterForm />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="flex w-full max-w-5xl shadow-lg rounded-lg overflow-hidden bg-white">
+        
+        {/* Left Gradient Section */}
+        <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-10">
+          <img src={logo} alt="Logo" className='py-5'/>
+          <h2 className="text-3xl font-semibold mb-4">Welcome to Noura</h2>
+          <p className="max-w-md text-center">
+            Transform your study routine with AI-powered personalized learning plans
+          </p>
         </div>
+
+        {/* Right Form Section */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-8">
+          <div className="w-full max-w-md">
+            <RegisterForm />
+          </div>
+        </div>
+
       </div>
     </div>
   );
