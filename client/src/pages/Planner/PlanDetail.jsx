@@ -48,7 +48,7 @@ export default function PlanDetail() {
   if (!currentPlan) return null;
 
   return (
-<div className="min-h-screen bg-gray-100 p-6">
+<div className="min-h-screen p-6">
   <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
     
     {/* Left Section (2/3) */}
