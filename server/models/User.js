@@ -18,18 +18,19 @@ const User = {
     return rows[0];
   },
 
-  async create({ firstName, lastName, email, password }) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const username = `${firstName} ${lastName}`;
-    
-    const { rows } = await pool.query(
-      `INSERT INTO users 
-       (username, first_name, last_name, email, password_hash) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, first_name, last_name`,
-      [username, firstName, lastName, email, hashedPassword]
-    );
-    return rows[0];
-  },
+// In your User model file
+async create({ firstName, lastName, email, password }) {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const username = `${firstName} ${lastName}`;
+  
+  const { rows } = await pool.query(
+    `INSERT INTO users 
+     (username, first_name, last_name, email, password_hash) 
+     VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, first_name, last_name, avatar`,
+    [username, firstName, lastName, email, hashedPassword]
+  );
+  return rows[0];
+},
 
   async createGoogleUser(profile) {
     const { rows } = await pool.query(

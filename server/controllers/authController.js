@@ -80,16 +80,20 @@ async register(req, res) {
   }),
 
     getCurrentUser(req, res) {
-        if (req.isAuthenticated()) {
-            return res.json({ 
-            user: {
-                id: req.user.id,
-                username: req.user.username,
-                email: req.user.email
-            } 
+      if (req.isAuthenticated()) {
+        console.log('User session data:', req.user); // Debug log
+        return res.json({ 
+          user: {
+            id: req.user.id,
+            username: req.user.username,
+            email: req.user.email,
+            first_name: req.user.first_name,
+            last_name: req.user.last_name,
+            avatar: req.user.avatar // Ensure this is included
+          } 
         });
-        }
-        res.status(401).json({ message: 'Not authenticated' });
+      }
+      res.status(401).json({ message: 'Not authenticated' });
     }
 };
 

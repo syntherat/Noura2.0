@@ -10,18 +10,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await api.get('/api/auth/me');
-      setUser(response.data.user);
-      return response.data.user;
-    } catch (error) {
-      setUser(null);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+const checkAuth = useCallback(async () => {
+  try {
+    const response = await api.get('/api/auth/me');
+    console.log('User data from /api/auth/me:', response.data.user); // Add this line
+    setUser(response.data.user);
+    return response.data.user;
+  } catch (error) {
+    setUser(null);
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,7 +52,8 @@ const login = async (email, password) => {
       email: response.user.email,
       username: response.user.username,
       firstName: response.user.first_name,
-      lastName: response.user.last_name
+      lastName: response.user.last_name,
+      avatar: response.user.avatar
     });
     navigate('/app');
     return { success: true };

@@ -61,7 +61,6 @@ passport.use(
   )
 );
 
-// Google Strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -70,6 +69,7 @@ passport.use(new GoogleStrategy({
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     let user;
+    const avatarUrl = profile.photos?.[0]?.value;
     
     // Check by Google ID first
     const googleUser = await pool.query(
@@ -79,6 +79,14 @@ passport.use(new GoogleStrategy({
 
     if (googleUser.rows.length > 0) {
       user = googleUser.rows[0];
+      // Update avatar if it's not set
+      if (!user.avatar && avatarUrl) {
+        await pool.query(
+          'UPDATE users SET avatar = $1 WHERE id = $2',
+          [avatarUrl, user.id]
+        );
+        user.avatar = avatarUrl;
+      }
     } else {
       // Check by email (in case user signed up with email first)
       const emailUser = await pool.query(
@@ -87,23 +95,24 @@ passport.use(new GoogleStrategy({
       );
 
       if (emailUser.rows.length > 0) {
-        // Update existing user with Google ID
+        // Update existing user with Google ID and avatar
         user = await pool.query(
-          'UPDATE users SET google_id = $1 WHERE id = $2 RETURNING *',
-          [profile.id, emailUser.rows[0].id]
+          'UPDATE users SET google_id = $1, avatar = $2, password_hash = COALESCE(password_hash, \'\') WHERE id = $3 RETURNING *',
+          [profile.id, avatarUrl, emailUser.rows[0].id]
         ).then(res => res.rows[0]);
       } else {
-        // Create new user with empty password_hash
+        // Create new user with Google data
         user = await pool.query(
           `INSERT INTO users 
-           (username, email, google_id, first_name, last_name, password_hash) 
-           VALUES ($1, $2, $3, $4, $5, '') RETURNING *`,
+           (username, email, google_id, first_name, last_name, avatar, password_hash) 
+           VALUES ($1, $2, $3, $4, $5, $6, '') RETURNING *`,
           [
             profile.displayName,
             profile.emails[0].value,
             profile.id,
             profile.name?.givenName || '',
-            profile.name?.familyName || ''
+            profile.name?.familyName || '',
+            avatarUrl
           ]
         ).then(res => res.rows[0]);
       }

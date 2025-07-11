@@ -17,6 +17,17 @@ export default function Navbar() {
     ? `${user.first_name} ${user.last_name || ''}`.trim() 
     : user?.username || '';
 
+  // Generate initials for fallback avatar
+  const getInitials = (name) => {
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,20 +54,23 @@ export default function Navbar() {
               </button>
               <div className="ml-4 flex items-center gap-2">
                 <Avatar>
-                  <AvatarImage src={user?.avatar || ''} alt={displayName} />
-                  <AvatarFallback>
-                    {displayName
-                      ?.split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                {displayName && (
-                  <span className="text-gray-700 font-medium">{displayName}</span>
-                )}
-              </div>
+                  <AvatarImage 
+                    src={user?.avatar} 
+                    alt={displayName}
+                    className="object-cover"
+                    onError={(e) => {
+              console.error('Avatar image failed to load:', e);
+              e.currentTarget.style.display = 'none';
+            }}
+                  />
+          <AvatarFallback className="bg-gray-100 text-gray-600">
+            {getInitials(displayName)}
+          </AvatarFallback>
+        </Avatar>
+        {displayName && (
+          <span className="text-gray-700 font-medium">{displayName}</span>
+        )}
+      </div>
             </div>
           )}
         </div>
