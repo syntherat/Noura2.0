@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext.jsx';
 import { toast } from 'react-hot-toast';
 import GoogleAuth from './GoogleAuth.jsx';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react'; // install with `npm i lucide-react`
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterForm() {
   const { register } = useAuth();
@@ -14,58 +14,79 @@ export default function RegisterForm() {
     password: '',
     confirmPassword: ''
   });
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    setLoading(true);
+  const validatePassword = (password) => {
+    return (
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    );
+  };
 
-    const newErrors = {};
-    if (!formData.firstName) newErrors.firstName = 'First name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    if (!agree) {
-      newErrors.agree = 'You must agree to the terms';
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      // Basic validation
+      if (!formData.firstName) {
+        toast.error('First name is required');
+        return;
+      }
+      if (!formData.email) {
+        toast.error('Email is required');
+        return;
+      }
+      if (!formData.password) {
+        toast.error('Password is required');
+        return;
+      }
+      if (!validatePassword(formData.password)) {
+        toast.error('Password must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match');
+        return;
+      }
+      if (!agree) {
+        toast.error('You must agree to the terms');
+        return;
+      }
+
+      const result = await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (!result.success) {
+        toast.error(result.message || 'Registration failed');
+      } else {
+        toast.success('Registration successful!');
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      if (error.response?.data?.message?.includes('already in use')) {
+        toast.error('Email already exists');
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const result = await register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      password: formData.password
-    });
-
-    setLoading(false);
-    if (!result.success) {
-      toast.error(result.message);
-    }
-
-  } catch (error) {
-    console.error("Register error:", error);
-    setLoading(false);
-    toast.error("Something went wrong");
-  }
-};
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: null });
-    }
   };
 
   return (
@@ -74,7 +95,6 @@ const handleSubmit = async (e) => {
       <p className="text-gray-500 mb-6">Join us to start your learning journey</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-
         {/* First + Last Name */}
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -164,32 +184,36 @@ const handleSubmit = async (e) => {
             type="checkbox"
             className="mt-1"
             checked={agree}
-            onChange={(e) => {
-              setAgree(e.target.checked);
-              if (errors.agree) setErrors({ ...errors, agree: null });
-            }}
+            onChange={(e) => setAgree(e.target.checked)}
           />
           <p className="text-sm text-gray-600">
             I agree to the <a href="#" className="text-indigo-600 underline">Terms of Service</a> and <a href="#" className="text-indigo-600 underline">Privacy Policy</a>
           </p>
         </div>
-        {errors.agree && <p className="text-xs text-red-500">{errors.agree}</p>}
 
         {/* Submit */}
         <button
           type="submit"
           disabled={loading || !agree}
-          className="bg-indigo-600 text-white font-medium py-2 rounded-md w-full hover:bg-indigo-700 transition"
+          className="bg-indigo-600 text-white font-medium py-2 rounded-md w-full hover:bg-indigo-700 transition disabled:opacity-70"
         >
-          {loading ? 'Creating...' : 'Create Account'}
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating...
+            </span>
+          ) : 'Create Account'}
         </button>
       </form>
 
       {/* Divider */}
       <div className="flex items-center my-4">
-        <div className="flex-grow border-t"></div>
+        <div className="flex-grow border-t border-gray-300"></div>
         <span className="mx-2 text-gray-400 text-sm">Or continue with</span>
-        <div className="flex-grow border-t"></div>
+        <div className="flex-grow border-t border-gray-300"></div>
       </div>
 
       {/* Google */}

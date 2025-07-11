@@ -11,17 +11,22 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  
+  try {
     const result = await login(email, password);
-    setIsLoading(false);
     
     if (!result.success) {
       toast.error(result.message);
     }
-  };
+  } catch (error) {
+    toast.error("Login failed. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div>
