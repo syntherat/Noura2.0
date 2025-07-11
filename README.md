@@ -49,7 +49,7 @@ Noura is a full-stack web application built using **React (frontend)** and **Nod
 
 - **React.js**
 - **Tailwind CSS**
-- Axios (for API communication)
+- **Axios** (for API communication)
 
 ### Backend
 
@@ -121,7 +121,7 @@ cd client
 npm run build
 ```
 2. Deploy to:
-   - **Vercel**: Recommended for ease of CI/CD
+   - **Vercel**
    - **Netlify**
    - **GitHub Pages** (static build)
 
