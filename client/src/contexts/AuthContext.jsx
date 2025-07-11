@@ -43,33 +43,45 @@ export const AuthProvider = ({ children }) => {
     };
   }, [checkAuth, navigate]);
 
-  const login = async (email, password) => {
-    try {
-      const response = await authService.login(email, password);
-      setUser(response.user);
-      navigate('/app');
-      return { success: true };
-    } catch (err) {
-      return { 
-        success: false, 
-        message: err.response?.data?.message || 'Login failed' 
-      };
-    }
-  };
+const login = async (email, password) => {
+  try {
+    const response = await authService.login(email, password);
+    setUser({
+      id: response.user.id,
+      email: response.user.email,
+      username: response.user.username,
+      firstName: response.user.first_name,
+      lastName: response.user.last_name
+    });
+    navigate('/app');
+    return { success: true };
+  } catch (err) {
+    return { 
+      success: false, 
+      message: err.response?.data?.message || 'Login failed' 
+    };
+  }
+};
 
-  const register = async (username, email, password) => {
-    try {
-      const response = await authService.register(username, email, password);
-      setUser(response.user);
-      navigate('/app');
-      return { success: true };
-    } catch (err) {
-      return { 
-        success: false, 
-        message: err.response?.data?.message || 'Registration failed' 
-      };
-    }
-  };
+const register = async (userData) => {
+  try {
+    const response = await authService.register(userData);
+    setUser({
+      id: response.user.id,
+      email: response.user.email,
+      username: response.user.username,
+      firstName: response.user.first_name,
+      lastName: response.user.last_name
+    });
+    navigate('/app');
+    return { success: true };
+  } catch (err) {
+    return { 
+      success: false, 
+      message: err.response?.data?.message || 'Registration failed' 
+    };
+  }
+};
 
   const logout = async () => {
     try {

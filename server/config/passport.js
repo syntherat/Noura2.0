@@ -10,9 +10,23 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    console.log(`Attempting to deserialize user ID: ${id}`); // Debug log
+    
+    const { rows } = await pool.query(
+      'SELECT id, username, email FROM users WHERE id = $1', 
+      [id]
+    );
+    
+    if (rows.length === 0) {
+      console.warn(`User not found with ID: ${id}`); // Debug log
+      // Instead of throwing an error, return null to clear the invalid session
+      return done(null, null);
+    }
+    
+    console.log(`Successfully deserialized user:`, rows[0]); // Debug log
     done(null, rows[0]);
   } catch (err) {
+    console.error('Deserialization error:', err);
     done(err, null);
   }
 });
@@ -48,7 +62,6 @@ passport.use(
 );
 
 // Google Strategy
-// config/passport.js
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -56,40 +69,49 @@ passport.use(new GoogleStrategy({
     passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
-    // Check if user exists with this Google ID
-    const { rows } = await pool.query(
+    let user;
+    
+    // Check by Google ID first
+    const googleUser = await pool.query(
       'SELECT * FROM users WHERE google_id = $1', 
       [profile.id]
     );
 
-    if (rows.length > 0) return done(null, rows[0]); 
+    if (googleUser.rows.length > 0) {
+      user = googleUser.rows[0];
+    } else {
+      // Check by email (in case user signed up with email first)
+      const emailUser = await pool.query(
+        'SELECT * FROM users WHERE email = $1', 
+        [profile.emails[0].value]
+      );
 
-    // Create new user if doesn't exist
-    const newUser = {
-      google_id: profile.id,
-      username: profile.displayName,
-      email: profile.emails[0].value,
-      first_name: profile.name?.givenName || '',
-      last_name: profile.name?.familyName || '',
-      password_hash: '' // No password for Google users
-    };
-
-    const { rows: [user] } = await pool.query(
-      `INSERT INTO users 
-       (username, email, password_hash, google_id, first_name, last_name) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [
-        newUser.username, 
-        newUser.email, 
-        newUser.password_hash, 
-        newUser.google_id,
-        newUser.first_name,
-        newUser.last_name
-      ]
-    );
+      if (emailUser.rows.length > 0) {
+        // Update existing user with Google ID
+        user = await pool.query(
+          'UPDATE users SET google_id = $1 WHERE id = $2 RETURNING *',
+          [profile.id, emailUser.rows[0].id]
+        ).then(res => res.rows[0]);
+      } else {
+        // Create new user with empty password_hash
+        user = await pool.query(
+          `INSERT INTO users 
+           (username, email, google_id, first_name, last_name, password_hash) 
+           VALUES ($1, $2, $3, $4, $5, '') RETURNING *`,
+          [
+            profile.displayName,
+            profile.emails[0].value,
+            profile.id,
+            profile.name?.givenName || '',
+            profile.name?.familyName || ''
+          ]
+        ).then(res => res.rows[0]);
+      }
+    }
 
     done(null, user);
   } catch (err) {
+    console.error('Google auth error:', err);
     done(err);
   }
 }));

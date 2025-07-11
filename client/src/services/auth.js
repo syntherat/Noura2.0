@@ -1,16 +1,37 @@
 import api from './api.js';
 
 const authService = {
-  async login(email, password) {
-    const res = await api.post('/api/auth/login', { email, password });
-    return res.data;
-  },
+async login(email, password) {
+  const res = await api.post('/api/auth/login', { email, password });
+  return {
+    user: {
+      id: res.data.user.id,
+      email: res.data.user.email,
+      username: res.data.user.username,
+      first_name: res.data.user.first_name,
+      last_name: res.data.user.last_name
+    }
+  };
+},
   
-  async register(username, email, password) {
-    const res = await api.post('/api/auth/register', { username, email, password });
-    return res.data;
-  },
-  
+async register({ firstName, lastName, email, password }) {
+  const res = await api.post('/api/auth/register', { 
+    firstName, 
+    lastName, 
+    email, 
+    password 
+  });
+  return {
+    user: {
+      id: res.data.user.id,
+      email: res.data.user.email,
+      username: res.data.user.username,
+      first_name: res.data.user.first_name,
+      last_name: res.data.user.last_name
+    }
+  };
+},
+    
   async logout() {
     const res = await api.post('/api/auth/logout');
     return res.data;

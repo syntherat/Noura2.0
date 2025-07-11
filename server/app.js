@@ -12,6 +12,24 @@ import './config/passport.js';
 
 const app = express();
 
+// First, initialize the PgSession constructor
+const PgSession = pgSession(session);
+
+// Then create the session store
+const sessionStore = new PgSession({
+  pool: pool,
+  tableName: 'session',
+  createTableIfMissing: true
+});
+
+sessionStore.on('connect', () => {
+  console.log('Session store connected');
+});
+
+sessionStore.on('error', (error) => {
+  console.error('Session store error:', error);
+});
+
 // Middleware
 app.use(cors({
   origin: process.env.CLIENT_URL,
@@ -23,21 +41,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Session setup
-const PgSession = pgSession(session);
 app.use(
   session({
-    store: new PgSession({
-      pool: pool,
-      tableName: 'session',
-      createTableIfMissing: true // Add this line
-    }),
+    store: sessionStore, // Use the already created store
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: false, // Set to false in development, true in production
+      secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     }
   })

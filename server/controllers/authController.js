@@ -4,12 +4,28 @@ import User from '../models/User.js';
 const AuthController = {
   login(req, res, next) {
     passport.authenticate('local', (err, user, info) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info.message });
+      if (err) {
+        console.error('Login error:', err);
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ message: info.message || 'Login failed' });
+      }
       
       req.logIn(user, (err) => {
-        if (err) return next(err);
-        return res.json({ user });
+        if (err) {
+          console.error('Session login error:', err);
+          return next(err);
+        }
+        return res.json({ 
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name
+          }
+        });
       });
     })(req, res, next);
   },
@@ -25,16 +41,30 @@ async register(req, res) {
   try {
     const { firstName, lastName, email, password } = req.body;
     
-    if (await User.findByEmail(email)) {
+    // Validate input
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if email exists
+    const existingUser = await User.findByEmail(email);
+    if (existingUser) {
       return res.status(400).json({ message: 'Email already in use' });
     }
     
+    // Create user
     const user = await User.create({ firstName, lastName, email, password });
+    
+    // Log in the user
     req.login(user, (err) => {
-      if (err) return res.status(500).json({ message: 'Registration failed' });
-      res.status(201).json({ user });
+      if (err) {
+        console.error('Login after registration failed:', err);
+        return res.status(500).json({ message: 'Registration successful but login failed' });
+      }
+      return res.status(201).json({ user });
     });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Registration failed', error: err.message });
   }
 },
