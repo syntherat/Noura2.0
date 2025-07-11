@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import logo from '../../assets/NouraLogo.png';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -40,11 +41,20 @@ export default function Navbar() {
               >
                 Logout
               </button>
-              <div className="ml-4 flex items-center">
+              <div className="ml-4 flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage src={user?.avatar || ''} alt={displayName} />
+                  <AvatarFallback>
+                    {displayName
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
                 {displayName && (
-                  <span className="text-gray-700 font-medium">
-                    {displayName}
-                  </span>
+                  <span className="text-gray-700 font-medium">{displayName}</span>
                 )}
               </div>
             </div>
