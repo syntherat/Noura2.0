@@ -23,14 +23,6 @@ const sessionStore = new PgSession({
   conString: process.env.DATABASE_URL // Explicit connection string
 })();
 
-sessionStore.on('connect', () => {
-  console.log('Session store connected');
-});
-
-sessionStore.on('error', (error) => {
-  console.error('Session store error:', error);
-});
-
 // Middleware
 app.use(cors({
   origin: process.env.CLIENT_URL,
