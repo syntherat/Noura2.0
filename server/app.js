@@ -19,8 +19,9 @@ const PgSession = pgSession(session);
 const sessionStore = new PgSession({
   pool: pool,
   tableName: 'session',
-  createTableIfMissing: true
-});
+  createTableIfMissing: true,
+  conString: process.env.DATABASE_URL // Explicit connection string
+})();
 
 sessionStore.on('connect', () => {
   console.log('Session store connected');
@@ -34,13 +35,15 @@ sessionStore.on('error', (error) => {
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  exposedHeaders: ['set-cookie']
 }));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 app.enable('trust proxy');
 
 // Session setup
@@ -72,6 +75,13 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/planner', plannerRoutes);
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    session: req.sessionID ? 'active' : 'inactive',
+    user: req.user || 'unauthenticated'
+  });
+});
 
 // Error handling
 app.use(errorHandler);
