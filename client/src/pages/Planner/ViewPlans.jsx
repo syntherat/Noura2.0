@@ -3,13 +3,37 @@ import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/dateUtils.js';
 import usePlannerStore from '../../stores/plannerStore.js';
 import Spinner from '../../components/common/Spinner.jsx';
+import { useNavigate } from 'react-router-dom';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { Dialog } from '@headlessui/react';
+import { useState } from 'react';
 
 export default function ViewPlans() {
-  const { plans, fetchPlans, loading, error } = usePlannerStore();
+  const { plans, fetchPlans, loading, error, deletePlan } = usePlannerStore();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     fetchPlans();
   }, [fetchPlans]);
+
+  const handleDeleteClick = (plan) => {
+    setPlanToDelete(plan);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deletePlan(planToDelete.id);
+      setIsDeleteModalOpen(false);
+      setPlanToDelete(null);
+      // Optionally show a success message
+    } catch (err) {
+      console.error('Failed to delete plan:', err);
+      // Optionally show an error message
+    }
+  };
 
   if (loading) {
     return (
@@ -36,9 +60,42 @@ export default function ViewPlans() {
     );
   }
 
-
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-md rounded-xl bg-white p-6">
+            <Dialog.Title className="text-lg font-bold text-gray-900">
+              Delete Study Plan
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 text-gray-600">
+              Are you sure you want to delete "{planToDelete?.title}"? This action cannot be undone.
+            </Dialog.Description>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Delete Plan
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+
       <main className="flex-grow px-4 py-6">
         <div className="space-y-6">
           <div className="flex justify-between items-center">
@@ -90,14 +147,23 @@ export default function ViewPlans() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {plans.map((plan) => (
-                <Link
-                  key={plan.id}
-                  to={`/app/plans/${plan.id}`}
-                  className="group relative block bg-white border border-gray-200 rounded-2xl shadow-md p-5 transition transform hover:-translate-y-1 hover:shadow-lg"
-                >
+                <div key={plan.id} className="group relative block bg-white border border-gray-200 rounded-2xl shadow-md p-5 transition transform hover:-translate-y-1 hover:shadow-lg">
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDeleteClick(plan);
+                    }}
+                    className="absolute bottom-3 left-3 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label="Delete plan"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+
                   {/* Completed badge */}
                   {plan.completed && (
-                    <div className="absolute top-3 right-3 bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full flex items-center">
+                    <div className="absolute top-3 left-3 bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full flex items-center">
                       <svg
                         className="w-4 h-4 mr-1"
                         fill="none"
@@ -115,51 +181,53 @@ export default function ViewPlans() {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                      {plan.title}
-                    </h3>
-                    <span className="text-xs text-gray-500 whitespace-nowrap">{formatDate(plan.deadline)}</span>
-                  </div>
+                  <Link to={`/app/plans/${plan.id}`} className="block">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                        {plan.title}
+                      </h3>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">{formatDate(plan.deadline)}</span>
+                    </div>
 
-                  <div className="mt-3 flex items-center text-gray-600 text-sm">
-                    <svg
-                      className="w-4 h-4 mr-1 text-indigo-500"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
-                      />
-                    </svg>
-                    {plan.daily_hours} hours/day
-                  </div>
+                    <div className="mt-3 flex items-center text-gray-600 text-sm">
+                      <svg
+                        className="w-4 h-4 mr-1 text-indigo-500"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+                        />
+                      </svg>
+                      {plan.daily_hours} hours/day
+                    </div>
 
-                  <div className="mt-1 flex items-center text-gray-600 text-sm">
-                    <svg
-                      className="w-4 h-4 mr-1 text-green-500"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 4a1 1 0 011-1h3a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM16 5a1 1 0 011 1v12a1 1 0 01-1 1h-3a1 1 0 01-1-1V6a1 1 0 011-1h3z"
-                      />
-                    </svg>
-                    {plan.study_days.split(',').length} days/week
-                  </div>
+                    <div className="mt-1 flex items-center text-gray-600 text-sm">
+                      <svg
+                        className="w-4 h-4 mr-1 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 4a1 1 0 011-1h3a1 1 0 011 1v16a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM16 5a1 1 0 011 1v12a1 1 0 01-1 1h-3a1 1 0 01-1-1V6a1 1 0 011-1h3z"
+                        />
+                      </svg>
+                      {plan.study_days.split(',').length} days/week
+                    </div>
 
-                  <div className="mt-4 flex justify-end">
-                    <span className="text-indigo-500 text-sm font-medium group-hover:underline">View Details →</span>
-                  </div>
-                </Link>
+                    <div className="mt-4 flex justify-end">
+                      <span className="text-indigo-500 text-sm font-medium group-hover:underline">View Details →</span>
+                    </div>
+                  </Link>
+                </div>
               ))}
             </div>
           )}
