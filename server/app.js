@@ -40,6 +40,9 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('trust proxy', true);
+app.enable('trust proxy');
+
 // Session setup
 app.use(
   session({
